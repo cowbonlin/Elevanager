@@ -1,0 +1,78 @@
+.App {
+  text-align: center;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f7f6ea;
+}
+
+.building {
+  width: 1000px;
+  height: 630px;
+  border: 2px black solid;
+  border-radius: 30px 30px 0px 0px;
+  overflow: hidden;
+  position: relative;
+}
+
+.floor-container {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+}
+
+.ev-container {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: calc(100% - 10px);
+  display: flex;
+  justify-content: center;
+  grid-column-gap: 50px;
+}
+
+.floor {
+  height: 90px;
+  width: 100%;
+  background-color: #f7f1df;
+}
+
+.floor--no-color {
+  background-color: #f7f6ea;
+}
+
+.ev-column {
+  background-color: rgba(102, 102, 102, 0.1);
+  height: 100%;
+  width: 100px;
+  border-radius: 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: center;
+}
+
+.elevator {
+  background-color: #c1281c;
+  width: 50px;
+  height: 65px;
+  border-radius: 12px;
+  position: relative;
+  top: 10px;
+  transition: transform 1s ease;
+}
+
+.elevator--blue {
+  background-color: #3375ec;
+}
+
+.buttons {
+  position: absolute;
+  left: 100px;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  grid-row-gap: 5px;
+}
