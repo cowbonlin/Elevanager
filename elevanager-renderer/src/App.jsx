@@ -1,13 +1,43 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 import './App.css';
 import Elevator from './Elevator';
 
+const socket = io('http://localhost:3001');
+
 const App = () => {
-  const [evFloor, setEvFloor] = useState([7, 6]);
+  const [evFloor, setEvFloor] = useState([7, 7]);
+  
+  const moveElevator = (ev, floor) => {
+    setEvFloor((oldFloor) => oldFloor.map((f, i) => (i === ev) ? floor : f));
+  }
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      console.log('server connection:', true);
+      socket.emit('evInit', (response) => {
+        setEvFloor(response);
+      });
+    });
+
+    socket.on('disconnect', () => {
+      console.log('server connection:', false);
+    });
+    
+    socket.on('move', (ev, floor) => {
+      moveElevator(ev, floor);
+    })
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('move');
+    };
+  }, [evFloor]);
   
   const buttonClick = (ev, newFloor) => {
-    setEvFloor(oldFloor => oldFloor.map((floor, i) => (i === ev) ? newFloor : floor) );
-  }
+    socket.emit('move', ev, newFloor);
+  };
   
   return (
     <div className="App">
