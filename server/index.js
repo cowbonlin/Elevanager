@@ -53,12 +53,13 @@ io.on('connection', (socket) => {
   });
   
   socket.on('initElevators', (callback) => {
+    console.log('init');
     callback(elevators);
   });
   
-  socket.on('move', (eId, floor) => {
+  socket.on('elevatorMove', (eId, floor) => {
     elevators[eId].floor = floor;
-    socket.emit('move', eId, floor);
+    socket.emit('elevatorMove', eId, floor);
   });
   
 });

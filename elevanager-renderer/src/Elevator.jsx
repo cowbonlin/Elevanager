@@ -3,16 +3,23 @@ import './App.css';
 
 const floorToPx = (floor) => {
   return (7 - floor) * 90;
+};
+
+const getDuration = (fromFloor, toFloor) => {
+  return Math.abs(fromFloor - toFloor) * 1;
 }
 
 const Elevator = ({ color, data }) => {
+  // we use `useRef` to get updated whenever prop has changed
   const prevFloor = useRef();
-  useEffect(() => {  // get updated whenever prop has changed
+  useEffect(() => {  
+    setTimeout(() => {
+      console.log('arrived!');
+    }, getDuration(prevFloor.current, data.floor) * 1000);
+    
     prevFloor.current = data.floor;
   }, [data]);
   
-  
-  const duration = Math.abs(prevFloor.current - data.floor);
   const colorClass = (color === 'blue')? 'elevator--blue' : null;  
   return (
     <div className="ev-column">
@@ -20,7 +27,7 @@ const Elevator = ({ color, data }) => {
         className={`elevator ${colorClass}`} 
         style={{ 
           transform: `translateY(${floorToPx(data.floor)}px)`,
-          transitionDuration: `${duration}s`,
+          transitionDuration: `${getDuration(prevFloor.current, data.floor)}s`,
         }}
       >
           
