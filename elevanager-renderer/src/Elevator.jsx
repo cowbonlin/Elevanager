@@ -5,21 +5,21 @@ const floorToPx = (floor) => {
   return (7 - floor) * 90;
 }
 
-const Elevator = ({ color, floor }) => {
+const Elevator = ({ color, data }) => {
   const prevFloor = useRef();
-  useEffect(() => {
-    prevFloor.current = floor;
-  }, [floor]);
+  useEffect(() => {  // get updated whenever prop has changed
+    prevFloor.current = data.floor;
+  }, [data]);
   
   
-  const duration = Math.abs(prevFloor.current - floor);
+  const duration = Math.abs(prevFloor.current - data.floor);
   const colorClass = (color === 'blue')? 'elevator--blue' : null;  
   return (
     <div className="ev-column">
       <div 
         className={`elevator ${colorClass}`} 
         style={{ 
-          transform: `translateY(${floorToPx(floor)}px)`,
+          transform: `translateY(${floorToPx(data.floor)}px)`,
           transitionDuration: `${duration}s`,
         }}
       >

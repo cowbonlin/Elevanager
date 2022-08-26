@@ -6,17 +6,17 @@ import Elevator from './Elevator';
 const socket = io('http://localhost:3001');
 
 const App = () => {
-  const [evFloor, setEvFloor] = useState([7, 7]);
+  const [elevators, setElevators] = useState([{floor: 7}, {floor: 7}]);
   
-  const moveElevator = (ev, floor) => {
-    setEvFloor((oldFloor) => oldFloor.map((f, i) => (i === ev) ? floor : f));
+  const moveElevator = (eId, floor) => {
+    setElevators((oldElevator) => oldElevator.map((e, i) => (i === eId) ? {...e, floor} : e));
   }
 
   useEffect(() => {
     socket.on('connect', () => {
       console.log('server connection:', true);
-      socket.emit('evInit', (response) => {
-        setEvFloor(response);
+      socket.emit('initElevators', (elevators) => {
+        setElevators(elevators);
       });
     });
 
@@ -33,10 +33,11 @@ const App = () => {
       socket.off('disconnect');
       socket.off('move');
     };
-  }, [evFloor]);
+  }, [elevators]);
   
   const buttonClick = (ev, newFloor) => {
     socket.emit('move', ev, newFloor);
+    // set timeout to tell server of arrival
   };
   
   return (
@@ -71,8 +72,8 @@ const App = () => {
         </div>
         
         <div className="ev-container">
-          <Elevator floor={evFloor[0]}/>
-          <Elevator floor={evFloor[1]} color={'blue'} />
+          <Elevator data={elevators[0]}/>
+          <Elevator data={elevators[1]} color={'blue'} />
         </div>
       </div>
     </div>
