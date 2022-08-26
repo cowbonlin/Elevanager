@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
+import { SocketContext } from './context/socket';
 import './App.css';
 
 const floorToPx = (floor) => {
@@ -9,16 +10,19 @@ const getDuration = (fromFloor, toFloor) => {
   return Math.abs(fromFloor - toFloor) * 1;
 }
 
-const Elevator = ({ color, data }) => {
+const Elevator = ({ id, color, data }) => {
+  const socket = useContext(SocketContext);
+  
   // we use `useRef` to get updated whenever prop has changed
   const prevFloor = useRef();
   useEffect(() => {  
     setTimeout(() => {
       console.log('arrived!');
+      socket.emit('elevatorArrived', id);
     }, getDuration(prevFloor.current, data.floor) * 1000);
     
     prevFloor.current = data.floor;
-  }, [data]);
+  }, [data, id, socket]);
   
   const colorClass = (color === 'blue')? 'elevator--blue' : null;  
   return (

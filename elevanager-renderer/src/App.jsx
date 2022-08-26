@@ -5,6 +5,7 @@ import Elevator from './Elevator';
 
 const App = () => {
   const [elevators, setElevators] = useState([{floor: 7}, {floor: 7}]);
+  const [passengers, setPassengers] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   
   console.debug('server connection:', isConnected);
@@ -12,7 +13,10 @@ const App = () => {
   // useCallback to prevent duplicate binding from affecting performance
   const onConnect = useCallback(() => {
     setIsConnected(true);
-    socket.emit('initElevators', (elevators) => { setElevators(elevators); });
+    socket.emit('init', (newElevators, newPassengers) => { 
+      setElevators(newElevators);
+      setPassengers(newPassengers);
+    });
   }, []);
   
   const onDisconnect = useCallback(() => {
@@ -33,7 +37,7 @@ const App = () => {
       socket.off('disconnect', onDisconnect);
       socket.off('elevatorMove', onElevatorMove);
     };
-  }, []);
+  }, [onConnect, onDisconnect, onElevatorMove]);
   
   const buttonClick = (ev, newFloor) => {
     socket.emit('elevatorMove', ev, newFloor);
@@ -63,18 +67,18 @@ const App = () => {
 
         <div className="building">
           <div className="floor-container">
-            <div className="floor"></div>
-            <div className="floor floor--no-color"></div>
-            <div className="floor"></div>
-            <div className="floor floor--no-color"></div>
-            <div className="floor"></div>
-            <div className="floor floor--no-color"></div>
-            <div className="floor"></div>
+            <div className="floor">{passengers?.[7].length}</div>
+            <div className="floor floor--no-color">{passengers?.[6].length}</div>
+            <div className="floor">{passengers?.[5].length}</div>
+            <div className="floor floor--no-color">{passengers?.[4].length}</div>
+            <div className="floor">{passengers?.[3].length}</div>
+            <div className="floor floor--no-color">{passengers?.[2].length}</div>
+            <div className="floor">{passengers?.[1].length}</div>
           </div>
 
           <div className="ev-container">
-            <Elevator data={elevators[0]} />
-            <Elevator data={elevators[1]} color={'blue'} />
+            <Elevator id={0} data={elevators[0]} />
+            <Elevator id={1} data={elevators[1]} color={'blue'} />
           </div>
         </div>
       </div>

@@ -16,7 +16,8 @@ class Elevator {
   constructor(id) {
     this.id = id;
     this.floor = 7;
-    this.status = 'idle'; // idle | opening | closing | moving
+    this.detination = 7;
+    this.status = 'idle'; // idle | locked | moving
   }
 };
 
@@ -52,15 +53,22 @@ io.on('connection', (socket) => {
     console.log('disconnected');
   });
   
-  socket.on('initElevators', (callback) => {
+  socket.on('init', (callback) => {
     console.log('init');
-    callback(elevators);
+    callback(elevators, passengers);
   });
   
   socket.on('elevatorMove', (eId, floor) => {
-    elevators[eId].floor = floor;
+    elevators[eId].detination = floor;
+    elevators[eId].status = 'moving';
     socket.emit('elevatorMove', eId, floor);
   });
+  
+  socket.on('elevatorArrived', (eId) => {
+    console.log('elevatorArrvied', eId, elevators[eId].detination);
+    elevators[eId].floor = elevators[eId].detination;
+    elevators[eId].status = 'locked';
+  })
   
 });
 
