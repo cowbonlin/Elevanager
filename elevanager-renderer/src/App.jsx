@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SocketContext, socket } from './context/socket';
 import './App.css';
 import Elevator from './Elevator';
+import Panel from './Panel';
 
 const App = () => {
   const [elevators, setElevators] = useState([{floor: 7}, {floor: 7}]);
@@ -23,48 +24,36 @@ const App = () => {
     setIsConnected(false);
   }, []);
   
-  const onElevatorMove = useCallback((eId, floor) => {
-    setElevators((oldElevators) => oldElevators.map((e, i) => (i === eId) ? { ...e, floor } : e));
+  const onMoveElevator = useCallback((eId, floor) => {
+    setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, floor } : e));
+  }, []);
+  
+  const onCreatePassenger = useCallback((p) => {
+    setPassengers((oldPs) => ({
+      ...oldPs,
+      [p.from]: [...oldPs[p.from], p],
+    }));
   }, []);
 
   useEffect(() => {
     // as soon as the component is mounted, do the following tasks:
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
-    socket.on('elevatorMove', (eId, floor) => onElevatorMove(eId, floor) );
+    socket.on('moveElevator', (eId, floor) => onMoveElevator(eId, floor) );
+    socket.on('createPassenger', (passenger) => onCreatePassenger(passenger));
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
-      socket.off('elevatorMove', onElevatorMove);
+      socket.off('moveElevator', onMoveElevator);
+      socket.off('createPassenger', onCreatePassenger);
     };
-  }, [onConnect, onDisconnect, onElevatorMove]);
-  
-  const buttonClick = (ev, newFloor) => {
-    socket.emit('elevatorMove', ev, newFloor);
-    // set timeout to tell server of arrival
-  };
+  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger]);
   
   return (
     <SocketContext.Provider value={socket}>
       <div className="App">
-        <div className="buttons">
-          <button onClick={() => buttonClick(0, 7)}>7</button>
-          <button onClick={() => buttonClick(0, 6)}>6</button>
-          <button onClick={() => buttonClick(0, 5)}>5</button>
-          <button onClick={() => buttonClick(0, 4)}>4</button>
-          <button onClick={() => buttonClick(0, 3)}>3</button>
-          <button onClick={() => buttonClick(0, 2)}>2</button>
-          <button onClick={() => buttonClick(0, 1)}>1</button>
-          <hr />
-          <button onClick={() => buttonClick(1, 7)}>7</button>
-          <button onClick={() => buttonClick(1, 6)}>6</button>
-          <button onClick={() => buttonClick(1, 5)}>5</button>
-          <button onClick={() => buttonClick(1, 4)}>4</button>
-          <button onClick={() => buttonClick(1, 3)}>3</button>
-          <button onClick={() => buttonClick(1, 2)}>2</button>
-          <button onClick={() => buttonClick(1, 1)}>1</button>
-        </div>
-
+        
+        <Panel />
         <div className="building">
           <div className="floor-container">
             <div className="floor">{passengers?.[7].length}</div>

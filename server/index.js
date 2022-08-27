@@ -17,7 +17,7 @@ class Elevator {
     this.id = id;
     this.floor = 7;
     this.detination = 7;
-    this.status = 'idle'; // idle | locked | moving
+    this.status = 'idle'; // idle | locked(opening, opened, closing) | moving
   }
 };
 
@@ -49,26 +49,30 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('connected');
   
-  socket.on('disconnect', () => {
-    console.log('disconnected');
+  socket.onAny((eventName, ...args) => {
+    console.debug('LOG:', eventName, args);
   });
   
   socket.on('init', (callback) => {
-    console.log('init');
     callback(elevators, passengers);
   });
   
-  socket.on('elevatorMove', (eId, floor) => {
+  socket.on('moveElevator', (eId, floor) => {
     elevators[eId].detination = floor;
     elevators[eId].status = 'moving';
-    socket.emit('elevatorMove', eId, floor);
+    socket.emit('moveElevator', eId, floor);
   });
   
   socket.on('elevatorArrived', (eId) => {
-    console.log('elevatorArrvied', eId, elevators[eId].detination);
     elevators[eId].floor = elevators[eId].detination;
     elevators[eId].status = 'locked';
-  })
+  });
+  
+  socket.on('createPassenger', (from, to) => {
+    const passenger = new Passenger(from, to);
+    passengers[from].push(passenger);
+    socket.emit('createPassenger', passenger);
+  });
   
 });
 

@@ -17,7 +17,7 @@ const Elevator = ({ id, color, data }) => {
   const prevFloor = useRef();
   useEffect(() => {  
     setTimeout(() => {
-      console.log('arrived!');
+      console.log(`Elevator ${id} arrived at ${data.floor}`);
       socket.emit('elevatorArrived', id);
     }, getDuration(prevFloor.current, data.floor) * 1000);
     
