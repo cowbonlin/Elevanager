@@ -74,6 +74,13 @@ io.on('connection', (socket) => {
     socket.emit('createPassenger', passenger);
   });
   
+  socket.on('clearPassengers', () => {
+    Object.keys(passengers).forEach((floor) => {
+      passengers[floor] = [];
+    });
+    socket.emit('clearPassengers');
+  });
+  
 });
 
 server.listen(3001, () => {

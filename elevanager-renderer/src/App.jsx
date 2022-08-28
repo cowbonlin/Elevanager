@@ -34,6 +34,12 @@ const App = () => {
       [p.from]: [...oldPs[p.from], p],
     }));
   }, []);
+  
+  const onClearPassengers = useCallback(() => {
+    setPassengers((oldPs) => (
+      Object.keys(oldPs).reduce((acc, floor) => ({...acc, [floor]: []}), {})
+    ));
+  }, []);
 
   useEffect(() => {
     // as soon as the component is mounted, do the following tasks:
@@ -41,13 +47,15 @@ const App = () => {
     socket.on('disconnect', onDisconnect);
     socket.on('moveElevator', (eId, floor) => onMoveElevator(eId, floor) );
     socket.on('createPassenger', (passenger) => onCreatePassenger(passenger));
+    socket.on('clearPassengers', onClearPassengers);
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('moveElevator', onMoveElevator);
       socket.off('createPassenger', onCreatePassenger);
+      socket.off('clearPassengers', onClearPassengers);
     };
-  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger]);
+  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers]);
   
   return (
     <SocketContext.Provider value={socket}>

@@ -20,6 +20,10 @@ const Panel = () => {
     socket.emit('createPassenger', fromFloorInt, toFloorInt);
   };
   
+  const clearPassengers = () => {
+    socket.emit('clearPassengers');
+  };
+  
   return (
     <div className="panel">
       <button onClick={() => moveBtnClick(0, 7)}>7</button>
@@ -41,6 +45,8 @@ const Panel = () => {
       <input type="text" value={fromFloor} onChange={(e) => setFromFloor(e.target.value)} />
       <input type="text" value={toFloor} onChange={(e) => setToFloor(e.target.value)} />
       <button onClick={createPassenger}>Create Passenger</button>
+      <hr />
+      <button onClick={clearPassengers}>Clear Passengers</button>
     </div>
   );
 };
