@@ -35,15 +35,20 @@
 
 .floor {
   height: 90px;
-  width: 100%;
+  width: calc(100% - 60px);
   background-color: #f7f1df;
   display: flex;
   align-items: center;
   padding-left: 30px;
+  padding-right: 30px;
 }
 
 .floor--no-color {
   background-color: #f7f6ea;
+}
+
+.floor-passenger-list {
+  margin-left: auto;
 }
 
 .ev-column {

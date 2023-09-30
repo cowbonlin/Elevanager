@@ -13,7 +13,7 @@ const getDuration = (fromFloor, toFloor) => {
 const Elevator = ({ id, color, data }) => {
   const socket = useContext(SocketContext);
   
-  // we use `useRef` to get updated whenever prop has changed
+  // `useRef` is used to store current information including floor...
   const prevFloor = useRef();
   useEffect(() => {  
     setTimeout(() => {
@@ -24,7 +24,7 @@ const Elevator = ({ id, color, data }) => {
     prevFloor.current = data.floor;
   }, [data, id, socket]);
   
-  const colorClass = (color === 'blue')? 'elevator--blue' : null;  
+  const colorClass = (color === 'blue')? 'elevator--blue' : '';  
   return (
     <div className="ev-column">
       <div 
@@ -34,7 +34,7 @@ const Elevator = ({ id, color, data }) => {
           transitionDuration: `${getDuration(prevFloor.current, data.floor)}s`,
         }}
       >
-          
+        {(data.passengers ?? []).map((p) => p.id + ' ')}
       </div>
     </div>
   );
