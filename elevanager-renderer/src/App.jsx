@@ -23,9 +23,9 @@ const App = () => {
   // useCallback to prevent duplicate binding from affecting performance
   const onConnect = useCallback(() => {
     setIsConnected(true);
-    socket.emit('init', (newElevators, newPassengers) => { 
+    socket.emit('init', (newElevators, newFloors) => { 
       setElevators(newElevators);
-      setFloors(newPassengers);
+      setFloors(newFloors);
     });
   }, []);
   
@@ -37,28 +37,28 @@ const App = () => {
     setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, currentFloorId } : e));
   }, []);
   
-  const onCreatePassenger = useCallback((p) => {
-    setFloors((oldPs) => ({
-      ...oldPs,
-      [p.from]: [...oldPs[p.from], p],
+  const onCreatePassenger = useCallback((passenger) => {
+    setFloors((prevFloors) => ({
+      ...prevFloors,
+      [passenger.from]: [...prevFloors[passenger.from], passenger],
     }));
   }, []);
   
   const onClearPassengers = useCallback(() => {
-    setFloors((oldPs) => (
-      Object.keys(oldPs).reduce((acc, floor) => (
-        {...acc, [floor]: []}
+    setFloors((prevFloors) => (
+      Object.keys(prevFloors).reduce((acc, floorId) => (
+        {...acc, [floorId]: []}
       ), {})
     ));
   }, []);
   
-  const onOnboard = useCallback((eId, floor, passenger) => {
+  const onOnboard = useCallback((eId, floorId, passenger) => {
     // Remove the passenger from the floor
-    setFloors((oldPs) => {
-      const newPsAtFloor = _.filter(oldPs[floor], (p) => p.id !== passenger.id);
+    setFloors((prevFloors) => {
+      const newFloor = _.filter(prevFloors[floorId], (p) => p.id !== passenger.id);
       return {
-        ...oldPs,
-        [floor]: newPsAtFloor,
+        ...prevFloors,
+        [floorId]: newFloor,
       };
     });
     
