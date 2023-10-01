@@ -60,13 +60,13 @@ io.on('connection', (socket) => {
     callback(store.elevators, store.floors);
   });
   
-  socket.on('moveElevator', (eId, floor) => {
-    if (store.elevators[eId].currentFloorId === floor) {
+  socket.on('moveElevator', (eId, destinationFloorId) => {
+    if (store.elevators[eId].currentFloorId === destinationFloorId) {
       return;
     }
-    store.elevators[eId].destination = floor;
+    store.elevators[eId].destination = destinationFloorId;
     store.elevators[eId].status = 'moving';
-    socket.emit('moveElevator', eId, floor);
+    socket.emit('moveElevator', eId, destinationFloorId);
   });
   
   socket.on('elevatorArrived', (eId) => {

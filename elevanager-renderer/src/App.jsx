@@ -33,8 +33,14 @@ const App = () => {
     setIsConnected(false);
   }, []);
   
-  const onMoveElevator = useCallback((eId, currentFloorId) => {
-    setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, currentFloorId } : e));
+  const onMoveElevator = useCallback((elevatorId, currentFloorId) => {
+    console.log('onMoveElevator', elevatorId, currentFloorId);
+    setElevators(prevElevators => {
+      const newElevators = prevElevators.map((e) => e);
+      newElevators[elevatorId] = { ...newElevators[elevatorId], currentFloorId};
+      return newElevators;
+    }
+    )
   }, []);
   
   const onCreatePassenger = useCallback((passenger) => {
@@ -52,7 +58,7 @@ const App = () => {
     ));
   }, []);
   
-  const onOnboard = useCallback((eId, floorId, passenger) => {
+  const onOnboard = useCallback((elevatorId, floorId, passenger) => {
     // Remove the passenger from the floor
     setFloors((prevFloors) => {
       const newFloor = _.filter(prevFloors[floorId], (p) => p.id !== passenger.id);
@@ -63,10 +69,10 @@ const App = () => {
     });
     
     // Add the passenger to the elevator
-    setElevators((oldEs) => {
-      const newEs = oldEs.map((e) => e);
-      newEs[eId].passengers.push(passenger);
-      return newEs;
+    setElevators((prevElevators) => {
+      const newElevators = prevElevators.map((elevator) => elevator);
+      newElevators[elevatorId].passengers.push(passenger);
+      return newElevators;
     });
   }, []);
   

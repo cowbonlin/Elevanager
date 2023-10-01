@@ -15,7 +15,7 @@ const Elevator = ({ id, color, data }) => {
   
   // `useRef` is used to store current information including floor...
   const prevFloor = useRef();
-  useEffect(() => {  
+  useEffect(() => {
     setTimeout(() => {
       console.log(`Elevator ${id} arrived at ${data.currentFloorId}`);
       socket.emit('elevatorArrived', id);
