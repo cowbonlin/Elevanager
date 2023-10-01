@@ -36,14 +36,14 @@ class Passenger {
   }
 };
 
-// passengers: key is the int of each floor, starting from 1
-// passengers: value is a list of Passenger
+// floors: key is the int of each floor, starting from 1
+// floors: value is a list of Passenger
 const store = {
   elevators: [new Elevator(0), new Elevator(1)],
-  passengers: Object.fromEntries(_.range(1, 8).map(i => [i, []])),
+  floors: Object.fromEntries(_.range(1, 8).map(i => [i, []])),
 };
 const p0 = new Passenger(6, 5);
-store.passengers[6].push(p0);
+store.floors[6].push(p0);
 
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to Elevanager Server</h1>');
@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
   });
   
   socket.on('init', (callback) => {
-    callback(store.elevators, store.passengers);
+    callback(store.elevators, store.floors);
   });
   
   socket.on('moveElevator', (eId, floor) => {
@@ -78,13 +78,13 @@ io.on('connection', (socket) => {
   
   socket.on('createPassenger', (from, to) => {
     const passenger = new Passenger(from, to);
-    store.passengers[from].push(passenger);
+    store.floors[from].push(passenger);
     socket.emit('createPassenger', passenger);
   });
   
   socket.on('clearPassengers', () => {
-    Object.keys(store.passengers).forEach((floor) => {
-      store.passengers[floor] = [];
+    Object.keys(store.floors).forEach((floorId) => {
+      store.floors[floorId] = [];
     });
     socket.emit('clearPassengers');
   });
@@ -93,14 +93,14 @@ io.on('connection', (socket) => {
   socket.on('onboard', (elevatorId, passengerId, callback) => {
     // check if elevator and passenger are in the same floor
     const floor = store.elevators[elevatorId]?.currentFloorId;
-    if (!store.passengers[floor]?.some((p) => p.id === passengerId)) {
+    if (!store.floors[floor]?.some((p) => p.id === passengerId)) {
       // callback function arguments: isSuccessful[bool], reason[str]
       callback(false, 'Unmatched floor');
       return;
     }
     
     // remove passenger from the wait list and add it to the elevator
-    const passenger = _.remove(store.passengers[floor], {id: passengerId})[0];
+    const passenger = _.remove(store.floors[floor], {id: passengerId})[0];
     store.elevators[elevatorId].passengers.push(passenger);
     console.log(store);
     console.log('Elevator', elevatorId, ': ', store.elevators[elevatorId].passengers.map((p) => p.id));

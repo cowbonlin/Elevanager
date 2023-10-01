@@ -10,14 +10,14 @@ const App = () => {
     { currentFloorId: 7 }, 
     { currentFloorId: 7 },
   ]);
-  const [passengers, setPassengers] = useState(null);
+  const [floors, setFloors] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   
   console.debug('server connection:', isConnected);
   
   const printState = () => {
     console.log('Elevators state:', elevators);
-    console.log('Passengers state:', passengers);
+    console.log('Passengers state:', floors);
   };
   
   // useCallback to prevent duplicate binding from affecting performance
@@ -25,7 +25,7 @@ const App = () => {
     setIsConnected(true);
     socket.emit('init', (newElevators, newPassengers) => { 
       setElevators(newElevators);
-      setPassengers(newPassengers);
+      setFloors(newPassengers);
     });
   }, []);
   
@@ -38,14 +38,14 @@ const App = () => {
   }, []);
   
   const onCreatePassenger = useCallback((p) => {
-    setPassengers((oldPs) => ({
+    setFloors((oldPs) => ({
       ...oldPs,
       [p.from]: [...oldPs[p.from], p],
     }));
   }, []);
   
   const onClearPassengers = useCallback(() => {
-    setPassengers((oldPs) => (
+    setFloors((oldPs) => (
       Object.keys(oldPs).reduce((acc, floor) => (
         {...acc, [floor]: []}
       ), {})
@@ -54,7 +54,7 @@ const App = () => {
   
   const onOnboard = useCallback((eId, floor, passenger) => {
     // Remove the passenger from the floor
-    setPassengers((oldPs) => {
+    setFloors((oldPs) => {
       const newPsAtFloor = _.filter(oldPs[floor], (p) => p.id !== passenger.id);
       return {
         ...oldPs,
@@ -97,8 +97,8 @@ const App = () => {
           <div className="floor-container">
             {_.range(7, 0, -1).map((i) => (
               <div key={i} className={`floor ${(i % 2)? null : "floor--no-color"}`}>
-                <div>{passengers?.[i].length}</div>
-                <div className="floor-passenger-list">{passengers?.[i].map((p) => p.id + ', ')}</div>
+                <div>{floors?.[i].length}</div>
+                <div className="floor-passenger-list">{floors?.[i].map((p) => p.id + ', ')}</div>
               </div>
             ))}
           </div>
