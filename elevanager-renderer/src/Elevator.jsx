@@ -17,11 +17,11 @@ const Elevator = ({ id, color, data }) => {
   const prevFloor = useRef();
   useEffect(() => {  
     setTimeout(() => {
-      console.log(`Elevator ${id} arrived at ${data.floor}`);
+      console.log(`Elevator ${id} arrived at ${data.currentFloorId}`);
       socket.emit('elevatorArrived', id);
-    }, getDuration(prevFloor.current, data.floor) * 1000);
+    }, getDuration(prevFloor.current, data.currentFloorId) * 1000);
     
-    prevFloor.current = data.floor;
+    prevFloor.current = data.currentFloorId;
   }, [data, id, socket]);
   
   const colorClass = (color === 'blue')? 'elevator--blue' : '';  
@@ -30,8 +30,8 @@ const Elevator = ({ id, color, data }) => {
       <div 
         className={`elevator ${colorClass}`} 
         style={{ 
-          transform: `translateY(${floorToPx(data.floor)}px)`,
-          transitionDuration: `${getDuration(prevFloor.current, data.floor)}s`,
+          transform: `translateY(${floorToPx(data.currentFloorId)}px)`,
+          transitionDuration: `${getDuration(prevFloor.current, data.currentFloorId)}s`,
         }}
       >
         {(data.passengers ?? []).map((p) => p.id + ' ')}

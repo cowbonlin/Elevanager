@@ -15,8 +15,8 @@ const io = new Server(server, {
 class Elevator {
   constructor(id) {
     this.id = id;
-    this.floor = 7;
-    this.detination = 7;
+    this.currentFloorId = 7;
+    this.destination = 7;
     this.status = 'idle'; // idle | locked(opening, opened, closing) | moving
     this.direction = null; // null | up | down
     this.passengers = [];
@@ -36,6 +36,8 @@ class Passenger {
   }
 };
 
+// passengers: key is the int of each floor, starting from 1
+// passengers: value is a list of Passenger
 const store = {
   elevators: [new Elevator(0), new Elevator(1)],
   passengers: Object.fromEntries(_.range(1, 8).map(i => [i, []])),
@@ -59,16 +61,16 @@ io.on('connection', (socket) => {
   });
   
   socket.on('moveElevator', (eId, floor) => {
-    if (store.elevators[eId].floor === floor) {
+    if (store.elevators[eId].currentFloorId === floor) {
       return;
     }
-    store.elevators[eId].detination = floor;
+    store.elevators[eId].destination = floor;
     store.elevators[eId].status = 'moving';
     socket.emit('moveElevator', eId, floor);
   });
   
   socket.on('elevatorArrived', (eId) => {
-    store.elevators[eId].floor = store.elevators[eId].detination;
+    store.elevators[eId].currentFloorId = store.elevators[eId].destination;
     store.elevators[eId].status = 'locked';
     
     // todo: tell panel(client) of arrival
@@ -90,14 +92,14 @@ io.on('connection', (socket) => {
   // Todo: support multiple-people onboarding
   socket.on('onboard', (elevatorId, passengerId, callback) => {
     // check if elevator and passenger are in the same floor
-    const floor = store.elevators[elevatorId]?.floor;
+    const floor = store.elevators[elevatorId]?.currentFloorId;
     if (!store.passengers[floor]?.some((p) => p.id === passengerId)) {
+      // callback function arguments: isSuccessful[bool], reason[str]
       callback(false, 'Unmatched floor');
       return;
     }
     
-    // remove passenger from the waitlist and add it to the elevator
-    // const passenger = _.remove(store.passengers[floor], (p) => p.id === passengerId)[0];
+    // remove passenger from the wait list and add it to the elevator
     const passenger = _.remove(store.passengers[floor], {id: passengerId})[0];
     store.elevators[elevatorId].passengers.push(passenger);
     console.log(store);

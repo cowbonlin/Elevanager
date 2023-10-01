@@ -7,8 +7,8 @@ import Panel from './Panel';
 
 const App = () => {
   const [elevators, setElevators] = useState([
-    {floor: 7}, 
-    {floor: 7},
+    { currentFloorId: 7 }, 
+    { currentFloorId: 7 },
   ]);
   const [passengers, setPassengers] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -33,8 +33,8 @@ const App = () => {
     setIsConnected(false);
   }, []);
   
-  const onMoveElevator = useCallback((eId, floor) => {
-    setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, floor } : e));
+  const onMoveElevator = useCallback((eId, currentFloorId) => {
+    setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, currentFloorId } : e));
   }, []);
   
   const onCreatePassenger = useCallback((p) => {
@@ -46,13 +46,13 @@ const App = () => {
   
   const onClearPassengers = useCallback(() => {
     setPassengers((oldPs) => (
-      Object.keys(oldPs).reduce((acc, floor) => ({...acc, [floor]: []}), {})
+      Object.keys(oldPs).reduce((acc, floor) => (
+        {...acc, [floor]: []}
+      ), {})
     ));
   }, []);
   
   const onOnboard = useCallback((eId, floor, passenger) => {
-    // setElevators((oldEs) => oldEs.map((e, i) => (i === eId) ? { ...e, passenger: [e.passenger, ???]} : e));
-    
     // Remove the passenger from the floor
     setPassengers((oldPs) => {
       const newPsAtFloor = _.filter(oldPs[floor], (p) => p.id !== passenger.id);
