@@ -26,10 +26,10 @@ class Elevator {
 
 let passenger_count = 0;
 class Passenger {
-  constructor(from, to) {
+  constructor(departureFloorId, destinationFloorId) {
     this.id = passenger_count;
-    this.from = from;
-    this.to = to;
+    this.departureFloorId = departureFloorId;
+    this.destinationFloorId = destinationFloorId;
     this.timestamp = new Date();
     this.status = 'waiting'; // waiting | moving | finished
     
@@ -41,14 +41,18 @@ const getTransitionDuration = (fromFloorId, toFloorId) => {
   return Math.abs(fromFloorId - toFloorId) * 1;
 }
 
+
 // floors: key is the int of each floor, starting from 1
 // floors: value is a list of Passenger
 const store = {
   elevators: [new Elevator(0), new Elevator(1)],
-  floors: Object.fromEntries(_.range(1, 8).map(i => [i, []])),
+  passengers: {},
+  floors: Array.from({ length: 8 }, () => []),
 };
 const p0 = new Passenger(6, 5);
-store.floors[6].push(p0);
+store.passengers[p0.id] = p0;
+store.floors[p0.departureFloorId].push(p0.id);
+
 
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to Elevanager Server</h1>');
@@ -62,7 +66,7 @@ io.on('connection', (socket) => {
   });
   
   socket.on('init', (callback) => {
-    callback(store.elevators, store.floors);
+    callback(store.elevators, store.passengers, store.floors);
   });
   
   socket.on('moveElevator', (elevatorId, toFloorId, onError) => {
@@ -88,20 +92,10 @@ io.on('connection', (socket) => {
     }, getTransitionDuration(elevator.fromFloorId, elevator.toFloorId) * 1000);
   });
   
-  const onElevatorArrived = (elevator) => {
-    console.log(`LOG: Elevator ${elevator.id} arrived at ${elevator.toFloorId}`);
-    
-    elevator.status = 'idle';
-    elevator.currentFloorId = elevator.toFloorId;
-    elevator.fromFloorId = null;
-    elevator.toFloorId = null;
-    
-    socket.emit('elevatorArrived', elevator.id);
-  }
-  
-  socket.on('createPassenger', (from, to) => {
-    const passenger = new Passenger(from, to);
-    store.floors[from].push(passenger);
+  socket.on('createPassenger', (departureFloorId, destinationFloorId) => {
+    const passenger = new Passenger(departureFloorId, destinationFloorId);
+    store.passengers[passenger.id] = passenger;
+    store.floors[departureFloorId].push(passenger.id);
     socket.emit('createPassenger', passenger);
   });
   
@@ -112,22 +106,45 @@ io.on('connection', (socket) => {
     socket.emit('clearPassengers');
   });
   
-  // Todo: support multiple-people onboarding
+  // TODO: support multiple-people onboarding
   socket.on('onboard', (elevatorId, passengerId, onError) => {
-    // check if elevator and passenger are in the same floor
-    const elevatorFloorId = store.elevators[elevatorId]?.currentFloorId;
-    if (!store.floors[elevatorFloorId]?.some((p) => p.id === passengerId)) {
-      onError('Passenger not found in elevator current floor', elevatorFloorId, store.floors[elevatorFloorId]);
+    const elevator = store.elevators[elevatorId];
+    
+    const passenger = store.passengers[passengerId];
+    if (passenger === undefined) {
+      onError('Passenger not found', passengerId, store.passengers);
       return;
     }
     
-    // remove passenger from the wait list and add it to the elevator
-    const passenger = _.remove(store.floors[elevatorFloorId], {id: passengerId})[0];
-    store.elevators[elevatorId].passengers.push(passenger);
-    console.log('Elevator', elevatorId, ': ', store.elevators[elevatorId].passengers.map((p) => p.id));
+    if (elevator.status !== 'idle') {
+      onError('Elevator should be idle', elevator);
+      return;
+    }
     
-    socket.emit('onboard', elevatorId, elevatorFloorId, passenger);
+    if (!store.floors[elevator.currentFloorId]?.some((pId) => pId === passengerId)) {
+      onError('Passenger not found in elevator current floor', elevator.currentFloorId, store.floors[elevator.currentFloorId]);
+      return;
+    }
+    
+    // Remove passenger from the floor
+    _.pull(store.floors[elevator.currentFloorId], passenger.id);
+    
+    // Add passenger to the elevator
+    elevator.passengers.push(passenger.id);
+    
+    socket.emit('onboard', elevatorId, elevator.currentFloorId, passenger.id);
   });
+  
+  const onElevatorArrived = (elevator) => {
+    console.log(`LOG: Elevator ${elevator.id} arrived at ${elevator.toFloorId}`);
+
+    elevator.status = 'idle';
+    elevator.currentFloorId = elevator.toFloorId;
+    elevator.fromFloorId = null;
+    elevator.toFloorId = null;
+
+    socket.emit('elevatorArrived', elevator.id);
+  }
   
 });
 

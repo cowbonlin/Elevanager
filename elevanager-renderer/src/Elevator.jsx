@@ -30,7 +30,7 @@ const Elevator = ({ color, elevator }) => {
           transitionDuration: duration && `${duration}s`,
         }}
       >
-        {(passengers ?? []).map((p) => p.id + ' ')}
+        {(passengers ?? []).map((passengerId) => passengerId + ' ')}
       </div>
     </div>
   );

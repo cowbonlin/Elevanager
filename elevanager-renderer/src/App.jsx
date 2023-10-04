@@ -11,21 +11,24 @@ const App = () => {
     {id: 1, fromFloorId: null, toFloorId: null, currentFloorId: 7, status: 'idle'},
   ]);
   const [floors, setFloors] = useState(null);
+  const [passengers, setPassengers] = useState({});
   const [isSocketIoConnected, setIsSocketIoConnected] = useState(false);
   
   console.debug('server connection:', isSocketIoConnected);
   
   const printState = () => {
-    console.log('Elevators state:', elevators);
-    console.log('Passengers state:', floors);
+    console.log('Elevators:', elevators);
+    console.log('Passengers', passengers);
+    console.log('Floors:', floors);
   };
   
   // useCallback to prevent duplicate binding from affecting performance
   const onConnect = useCallback(() => {
     setIsSocketIoConnected(true);
-    socket.emit('init', (newElevators, newFloors) => { 
-      console.log('Received init data', newElevators, newFloors);
+    socket.emit('init', (newElevators, newPassengers, newFloors) => { 
+      console.log('Received init data', newElevators, newPassengers, newFloors);
       setElevators(newElevators);
+      setPassengers(newPassengers);
       setFloors(newFloors);
     });
   }, []);
@@ -65,10 +68,16 @@ const App = () => {
   }, []);
   
   const onCreatePassenger = useCallback((passenger) => {
-    setFloors((prevFloors) => ({
-      ...prevFloors,
-      [passenger.from]: [...prevFloors[passenger.from], passenger],
+    setPassengers((prevPassengers) => ({
+      ...prevPassengers,
+      [passenger.id]: passenger,
     }));
+    
+    setFloors((prevFloors) => {
+      const updatedFloors = [...prevFloors];
+      updatedFloors[passenger.departureFloorId].push(passenger.id);
+      return updatedFloors;
+    });
   }, []);
   
   const onClearPassengers = useCallback(() => {
@@ -79,21 +88,19 @@ const App = () => {
     ));
   }, []);
   
-  const onOnboard = useCallback((elevatorId, floorId, passenger) => {
+  const onOnboard = useCallback((elevatorId, floorId, passengerId) => {
     // Remove the passenger from the floor
     setFloors((prevFloors) => {
-      const newFloor = _.filter(prevFloors[floorId], (p) => p.id !== passenger.id);
-      return {
-        ...prevFloors,
-        [floorId]: newFloor,
-      };
+      const updatedFloors = [...prevFloors];
+      _.pull(updatedFloors[floorId], passengerId);
+      return updatedFloors;
     });
     
     // Add the passenger to the elevator
     setElevators((prevElevators) => {
-      const newElevators = prevElevators.map((elevator) => elevator);
-      newElevators[elevatorId].passengers.push(passenger);
-      return newElevators;
+      const updatedElevators = [...prevElevators];
+      updatedElevators[elevatorId].passengers.push(passengerId);
+      return updatedElevators;
     });
   }, []);
   
@@ -131,8 +138,8 @@ const App = () => {
           <div className="floor-container">
             {_.range(7, 0, -1).map((i) => (
               <div key={i} className={`floor ${(i % 2)? null : "floor--no-color"}`}>
-                <div>{floors?.[i].length}</div>
-                <div className="floor-passenger-list">{floors?.[i].map((p) => p.id + ', ')}</div>
+                <div>Passengers: {floors?.[i].length}</div>
+                <div className="floor-passenger-list">{floors?.[i].map((passengerId) => passengerId + ', ')}</div>
               </div>
             ))}
           </div>
