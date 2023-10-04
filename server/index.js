@@ -113,22 +113,20 @@ io.on('connection', (socket) => {
   });
   
   // Todo: support multiple-people onboarding
-  socket.on('onboard', (elevatorId, passengerId, callback) => {
+  socket.on('onboard', (elevatorId, passengerId, onError) => {
     // check if elevator and passenger are in the same floor
-    const floorId = store.elevators[elevatorId]?.currentFloorId;
-    if (!store.floors[floorId]?.some((p) => p.id === passengerId)) {
-      // callback function arguments: isSuccessful[bool], reason[str]
-      callback(false, 'Unmatched floor');
+    const elevatorFloorId = store.elevators[elevatorId]?.currentFloorId;
+    if (!store.floors[elevatorFloorId]?.some((p) => p.id === passengerId)) {
+      onError('Passenger not found in elevator current floor', elevatorFloorId, store.floors[elevatorFloorId]);
       return;
     }
     
     // remove passenger from the wait list and add it to the elevator
-    const passenger = _.remove(store.floors[floorId], {id: passengerId})[0];
+    const passenger = _.remove(store.floors[elevatorFloorId], {id: passengerId})[0];
     store.elevators[elevatorId].passengers.push(passenger);
     console.log('Elevator', elevatorId, ': ', store.elevators[elevatorId].passengers.map((p) => p.id));
     
-    socket.emit('onboard', elevatorId, floorId, passenger);
-    callback(true);
+    socket.emit('onboard', elevatorId, elevatorFloorId, passenger);
   });
   
 });

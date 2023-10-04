@@ -39,8 +39,8 @@ const Panel = ({ printState }) => {
       console.warn('Invalid input', onboardEvId, onboardPsId);
       return;
     }
-    socket.emit('onboard', elevatorId, passengerId, (isSuc, message = '') => {
-      console.log('Onboard:', isSuc, message);
+    socket.emit('onboard', elevatorId, passengerId, (errorMessage, ...payload) => {
+      console.warn('onBoard error', errorMessage, payload);
     });
   };
   
