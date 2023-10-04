@@ -8,8 +8,10 @@ const Panel = ({ printState }) => {
   const [onboardEvId, setOnboardEvId] = useState('0');
   const [onboardPsId, setOnboardPsId] = useState('0');
   
-  const moveBtnClick = (eId, newFloor) => {
-    socket.emit('moveElevator', eId, newFloor);
+  const moveBtnClick = (elevatorId, toFloorId) => {
+    socket.emit('moveElevator', elevatorId, toFloorId, (errorMessage, payload = null) => {
+      console.warn('moveElevator', errorMessage, payload);
+    });
   };
   
   const createPassenger = () => {

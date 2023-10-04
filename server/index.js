@@ -16,8 +16,9 @@ class Elevator {
   constructor(id) {
     this.id = id;
     this.currentFloorId = 7;
-    this.destination = 7;
-    this.status = 'idle'; // idle | locked(opening, opened, closing) | moving
+    this.fromFloorId = null;
+    this.toFloorId = null;
+    this.status = 'idle'; // idle | locked (opening, opened, closing) | moving
     this.direction = null; // null | up | down
     this.passengers = [];
   }
@@ -35,6 +36,10 @@ class Passenger {
     passenger_count++;
   }
 };
+
+const getTransitionDuration = (fromFloorId, toFloorId) => {
+  return Math.abs(fromFloorId - toFloorId) * 1;
+}
 
 // floors: key is the int of each floor, starting from 1
 // floors: value is a list of Passenger
@@ -60,21 +65,39 @@ io.on('connection', (socket) => {
     callback(store.elevators, store.floors);
   });
   
-  socket.on('moveElevator', (eId, destinationFloorId) => {
-    if (store.elevators[eId].currentFloorId === destinationFloorId) {
+  socket.on('moveElevator', (elevatorId, toFloorId, onError) => {
+    const elevator = store.elevators[elevatorId];
+    if (elevator.status !== 'idle') {
+      onError('Elevator should be in idle', elevator);
       return;
     }
-    store.elevators[eId].destination = destinationFloorId;
-    store.elevators[eId].status = 'moving';
-    socket.emit('moveElevator', eId, destinationFloorId);
+    
+    if (elevator.currentFloorId === toFloorId) {
+      onError('currentFloorId should not be same as toFloor', elevator);
+      return;
+    }
+    
+    elevator.status = 'moving';
+    elevator.fromFloorId = elevator.currentFloorId;
+    elevator.toFloorId = toFloorId;
+    elevator.currentFloorId = null;
+    socket.emit('moveElevator', elevator.id, elevator.toFloorId);
+    
+    setTimeout(() => {
+      onElevatorArrived(elevator);
+    }, getTransitionDuration(elevator.fromFloorId, elevator.toFloorId) * 1000);
   });
   
-  socket.on('elevatorArrived', (eId) => {
-    store.elevators[eId].currentFloorId = store.elevators[eId].destination;
-    store.elevators[eId].status = 'locked';
+  const onElevatorArrived = (elevator) => {
+    console.log(`LOG: Elevator ${elevator.id} arrived at ${elevator.toFloorId}`);
     
-    // todo: tell panel(client) of arrival
-  });
+    elevator.status = 'idle';
+    elevator.currentFloorId = elevator.toFloorId;
+    elevator.fromFloorId = null;
+    elevator.toFloorId = null;
+    
+    socket.emit('elevatorArrived', elevator.id);
+  }
   
   socket.on('createPassenger', (from, to) => {
     const passenger = new Passenger(from, to);
@@ -102,7 +125,6 @@ io.on('connection', (socket) => {
     // remove passenger from the wait list and add it to the elevator
     const passenger = _.remove(store.floors[floorId], {id: passengerId})[0];
     store.elevators[elevatorId].passengers.push(passenger);
-    console.log(store);
     console.log('Elevator', elevatorId, ': ', store.elevators[elevatorId].passengers.map((p) => p.id));
     
     socket.emit('onboard', elevatorId, floorId, passenger);

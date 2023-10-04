@@ -1,40 +1,36 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { SocketContext } from './context/socket';
+import React from 'react';
 import './App.css';
 
-const floorToPx = (floor) => {
-  return (7 - floor) * 90;
+const getElevatorPosition = (status, currentFloorId, toFloorId) => {
+  if (status === 'idle') {
+    return (7 - currentFloorId) * 90;
+  }
+  // When status is 'moving'
+  return (7 - toFloorId) * 90;
 };
 
-const getDuration = (fromFloor, toFloor) => {
-  return Math.abs(fromFloor - toFloor) * 1;
-}
+const getTransitionDuration = (status, fromFloorId, toFloorId) => {
+  if (status === 'moving') {
+    return Math.abs(fromFloorId - toFloorId) * 1;
+  }
+  return null;
+};
 
-const Elevator = ({ id, color, data }) => {
-  const socket = useContext(SocketContext);
+const Elevator = ({ color, elevator }) => {
+  const { status, currentFloorId, fromFloorId, toFloorId, passengers } = elevator;
   
-  // `useRef` is used to store current information including floor...
-  const prevFloor = useRef();
-  useEffect(() => {
-    setTimeout(() => {
-      console.log(`Elevator ${id} arrived at ${data.currentFloorId}`);
-      socket.emit('elevatorArrived', id);
-    }, getDuration(prevFloor.current, data.currentFloorId) * 1000);
-    
-    prevFloor.current = data.currentFloorId;
-  }, [data, id, socket]);
-  
-  const colorClass = (color === 'blue')? 'elevator--blue' : '';  
+  const colorClass = (color === 'blue')? 'elevator--blue' : '';
+  const duration = getTransitionDuration(status, fromFloorId, toFloorId);
   return (
     <div className="ev-column">
       <div 
         className={`elevator ${colorClass}`} 
         style={{ 
-          transform: `translateY(${floorToPx(data.currentFloorId)}px)`,
-          transitionDuration: `${getDuration(prevFloor.current, data.currentFloorId)}s`,
+          transform: `translateY(${getElevatorPosition(status, currentFloorId, toFloorId)}px)`,
+          transitionDuration: duration && `${duration}s`,
         }}
       >
-        {(data.passengers ?? []).map((p) => p.id + ' ')}
+        {(passengers ?? []).map((p) => p.id + ' ')}
       </div>
     </div>
   );

@@ -7,13 +7,13 @@ import Panel from './Panel';
 
 const App = () => {
   const [elevators, setElevators] = useState([
-    { currentFloorId: 7 }, 
-    { currentFloorId: 7 },
+    {id: 0, fromFloorId: null, toFloorId: null, currentFloorId: 7, status: 'idle'},
+    {id: 1, fromFloorId: null, toFloorId: null, currentFloorId: 7, status: 'idle'},
   ]);
   const [floors, setFloors] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isSocketIoConnected, setIsSocketIoConnected] = useState(false);
   
-  console.debug('server connection:', isConnected);
+  console.debug('server connection:', isSocketIoConnected);
   
   const printState = () => {
     console.log('Elevators state:', elevators);
@@ -22,25 +22,46 @@ const App = () => {
   
   // useCallback to prevent duplicate binding from affecting performance
   const onConnect = useCallback(() => {
-    setIsConnected(true);
+    setIsSocketIoConnected(true);
     socket.emit('init', (newElevators, newFloors) => { 
+      console.log('Received init data', newElevators, newFloors);
       setElevators(newElevators);
       setFloors(newFloors);
     });
   }, []);
   
   const onDisconnect = useCallback(() => {
-    setIsConnected(false);
+    setIsSocketIoConnected(false);
   }, []);
   
-  const onMoveElevator = useCallback((elevatorId, currentFloorId) => {
-    console.log('onMoveElevator', elevatorId, currentFloorId);
+  const onMoveElevator = useCallback((elevatorId, toFloorId) => {
     setElevators(prevElevators => {
+      const prevElevator = prevElevators[elevatorId];
       const newElevators = prevElevators.map((e) => e);
-      newElevators[elevatorId] = { ...newElevators[elevatorId], currentFloorId};
+      newElevators[elevatorId] = { 
+        ...newElevators[elevatorId], 
+        status: 'moving',
+        currentFloorId: null,
+        fromFloorId: prevElevator.currentFloorId,
+        toFloorId, 
+      };
       return newElevators;
-    }
-    )
+    });
+  }, []);
+  
+  const onElevatorArrived = useCallback((elevatorId) => {
+    setElevators(prevElevators => {
+      const prevElevator = prevElevators[elevatorId];
+      const newElevators = prevElevators.map((e) => e);
+      newElevators[elevatorId] = {
+        ...newElevators[elevatorId],
+        status: 'idle',
+        currentFloorId: prevElevator.toFloorId,
+        fromFloorId: null,
+        toFloorId: null,
+      };
+      return newElevators;
+    });
   }, []);
   
   const onCreatePassenger = useCallback((passenger) => {
@@ -79,20 +100,27 @@ const App = () => {
   useEffect(() => {
     // as soon as the component is mounted, do the following tasks:
     socket.on('connect', onConnect);
+    socket.onAny((event, ...args) => {
+      console.log(`Received event: ${event}`, args);
+    });
     socket.on('disconnect', onDisconnect);
     socket.on('moveElevator', (...args) => onMoveElevator(...args) );
     socket.on('createPassenger', (...args) => onCreatePassenger(...args));
     socket.on('clearPassengers', onClearPassengers);
     socket.on('onboard', (...args) => onOnboard(...args));
+    socket.on('elevatorArrived', (...args) => onElevatorArrived(...args));
     return () => {
       socket.off('connect', onConnect);
+      socket.offAny();
       socket.off('disconnect', onDisconnect);
       socket.off('moveElevator', onMoveElevator);
       socket.off('createPassenger', onCreatePassenger);
       socket.off('clearPassengers', onClearPassengers);
       socket.off('onboard', onOnboard);
     };
-  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard]);
+  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived]);
+  
+  
   
   return (
     <SocketContext.Provider value={socket}>
@@ -110,8 +138,8 @@ const App = () => {
           </div>
 
           <div className="ev-container">
-            <Elevator id={0} data={elevators[0]} />
-            <Elevator id={1} data={elevators[1]} color={'blue'} />
+            <Elevator elevator={elevators[0]} />
+            <Elevator elevator={elevators[1]} color={'blue'} />
           </div>
         </div>
       </div>
