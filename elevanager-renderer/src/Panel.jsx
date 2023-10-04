@@ -2,11 +2,11 @@ import React, { useContext, useState } from "react";
 import { SocketContext } from "./context/socket";
 
 const Panel = ({ printState }) => {
-  const [fromFloor, setFromFloor] = useState('');
-  const [toFloor, setToFloor] = useState('');
+  const [moveElevatorFrom, setMoveElevatorFrom] = useState('');
+  const [moveElevatorTo, setMoveElevatorTo] = useState('');
   const socket = useContext(SocketContext);
-  const [onboardEvId, setOnboardEvId] = useState('0');
-  const [onboardPsId, setOnboardPsId] = useState('0');
+  const [onboardElevatorId, setOnboardElevatorId] = useState('0');
+  const [onboardPassengerId, setOnboardPassengerId] = useState('0');
   
   const moveBtnClick = (elevatorId, toFloorId) => {
     socket.emit('moveElevator', elevatorId, toFloorId, (errorMessage, payload = null) => {
@@ -15,14 +15,14 @@ const Panel = ({ printState }) => {
   };
   
   const createPassenger = () => {
-    const fromFloorInt = +fromFloor;
-    const toFloorInt = +toFloor;
-    if (!fromFloor || !toFloor || isNaN(fromFloorInt) || isNaN(toFloorInt)) {
-      console.warn('Invalid input', fromFloor, toFloor);
+    const fromFloorInt = +moveElevatorFrom;
+    const toFloorInt = +moveElevatorTo;
+    if (!moveElevatorFrom || !moveElevatorTo || isNaN(fromFloorInt) || isNaN(toFloorInt)) {
+      console.warn('Invalid input', moveElevatorFrom, moveElevatorTo);
       return;
     }
     if (fromFloorInt < 1 || fromFloorInt > 7 || toFloorInt < 1 || toFloorInt > 7) {
-      console.warn('Input out of range', fromFloor, toFloor);
+      console.warn('Input out of range', moveElevatorFrom, moveElevatorTo);
       return;
     }
     socket.emit('createPassenger', fromFloorInt, toFloorInt);
@@ -33,10 +33,10 @@ const Panel = ({ printState }) => {
   };
   
   const onBoardPassenger = () => {
-    const elevatorId = +onboardEvId;
-    const passengerId = +onboardPsId;
-    if (!onboardEvId || !onboardPsId || isNaN(elevatorId) || isNaN(passengerId)) {
-      console.warn('Invalid input', onboardEvId, onboardPsId);
+    const elevatorId = +onboardElevatorId;
+    const passengerId = +onboardPassengerId;
+    if (!onboardElevatorId || !onboardPassengerId || isNaN(elevatorId) || isNaN(passengerId)) {
+      console.warn('Invalid input', onboardElevatorId, onboardPassengerId);
       return;
     }
     socket.emit('onboard', elevatorId, passengerId, (errorMessage, ...payload) => {
@@ -62,14 +62,14 @@ const Panel = ({ printState }) => {
       <button onClick={() => moveBtnClick(1, 2)}>2</button>
       <button onClick={() => moveBtnClick(1, 1)}>1</button>
       <hr />
-      <input type="text" value={fromFloor} placeholder="From" onChange={(e) => setFromFloor(e.target.value)} />
-      <input type="text" value={toFloor} placeholder="To" onChange={(e) => setToFloor(e.target.value)} />
+      <input type="text" value={moveElevatorFrom} placeholder="Move elevator from" onChange={(e) => setMoveElevatorFrom(e.target.value)} />
+      <input type="text" value={moveElevatorTo} placeholder="Move elevator to" onChange={(e) => setMoveElevatorTo(e.target.value)} />
       <button onClick={createPassenger}>Create Passenger</button>
       <hr />
       <button onClick={clearPassengers}>Clear Passengers</button>
       <hr />
-      <input type="text" value={onboardEvId} placeholder="Elevator ID" onChange={(e) => setOnboardEvId(e.target.value)} />
-      <input type="text" value={onboardPsId} placeholder="Passenger ID" onChange={(e) => setOnboardPsId(e.target.value)} />
+      <input type="text" value={onboardElevatorId} placeholder="Elevator ID" onChange={(e) => setOnboardElevatorId(e.target.value)} />
+      <input type="text" value={onboardPassengerId} placeholder="Passenger ID" onChange={(e) => setOnboardPassengerId(e.target.value)} />
       <button onClick={onBoardPassenger}>Onboard Passenger</button>
       <hr />
       <button onClick={printState}>Print states</button>
