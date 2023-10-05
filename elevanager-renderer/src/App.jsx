@@ -12,6 +12,7 @@ const App = () => {
   ]);
   const [floors, setFloors] = useState(null);
   const [passengers, setPassengers] = useState({});
+  const [score, setScore] = useState(0);
   const [isSocketIoConnected, setIsSocketIoConnected] = useState(false);
   
   console.debug('server connection:', isSocketIoConnected);
@@ -104,11 +105,27 @@ const App = () => {
     });
   }, []);
   
+  const onOffboard = useCallback((elevatorId, passengersToOffboard) => {
+    // Remove passengers from elevator from passengersToOffboard
+    setElevators((prevElevators) => {
+      const updatedElevators = [...prevElevators];
+      _.pullAll(
+        updatedElevators[elevatorId].passengers,
+        passengersToOffboard,
+      );
+      return updatedElevators;
+    });
+  }, []);
+  
+  const onUpdateScore = useCallback((score) => {
+    setScore(score);
+  }, []);
+  
   useEffect(() => {
     // as soon as the component is mounted, do the following tasks:
     socket.on('connect', onConnect);
     socket.onAny((event, ...args) => {
-      console.log(`Received event: ${event}`, args);
+      console.log(`Received event: ${event}`, ...args);
     });
     socket.on('disconnect', onDisconnect);
     socket.on('moveElevator', (...args) => onMoveElevator(...args) );
@@ -116,6 +133,8 @@ const App = () => {
     socket.on('clearPassengers', onClearPassengers);
     socket.on('onboard', (...args) => onOnboard(...args));
     socket.on('elevatorArrived', (...args) => onElevatorArrived(...args));
+    socket.on('offboard', (...args) => onOffboard(...args));
+    socket.on('updateScore', (...args) => onUpdateScore(...args));
     return () => {
       socket.off('connect', onConnect);
       socket.offAny();
@@ -124,6 +143,8 @@ const App = () => {
       socket.off('createPassenger', onCreatePassenger);
       socket.off('clearPassengers', onClearPassengers);
       socket.off('onboard', onOnboard);
+      socket.off('offboard', onOffboard);
+      socket.off('updateScore', onUpdateScore);
     };
   }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived]);
   
@@ -148,6 +169,9 @@ const App = () => {
             <Elevator elevator={elevators[0]} />
             <Elevator elevator={elevators[1]} color={'blue'} />
           </div>
+        </div>
+        <div className="gameStats">
+          Score: {score}
         </div>
       </div>
     </SocketContext.Provider>

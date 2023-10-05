@@ -48,6 +48,9 @@ const store = {
   elevators: [new Elevator(0), new Elevator(1)],
   passengers: {},
   floors: Array.from({ length: 8 }, () => []),
+  gameStats: {
+    score: 0,
+  },
 };
 const p0 = new Passenger(6, 5);
 store.passengers[p0.id] = p0;
@@ -142,10 +145,34 @@ io.on('connection', (socket) => {
     elevator.currentFloorId = elevator.toFloorId;
     elevator.fromFloorId = null;
     elevator.toFloorId = null;
-
     socket.emit('elevatorArrived', elevator.id);
-  }
+    
+    offboard(elevator);
+  };
   
+  const offboard = (elevator) => {
+    if (elevator.status !== 'idle') {
+      console.warn("Elevator should be in idle when offboarding");
+      return;
+    }
+    
+    // Remove passengers from elevator who arrive at their destination
+    const passengersToOffboard = _.remove(
+      elevator.passengers, 
+      (passengerId) => {
+        const passenger = store.passengers[passengerId];
+        return passenger.destinationFloorId == elevator.currentFloorId;
+      }
+    );
+    
+    // TODO: maybe remove arrived passengers from store.passengers?
+    
+    if (passengersToOffboard.length > 0) {
+      store.gameStats.score += passengersToOffboard.length;
+      socket.emit('offboard', elevator.id, passengersToOffboard);
+      socket.emit('updateScore', store.gameStats.score);
+    }
+  };
 });
 
 server.listen(3001, () => {

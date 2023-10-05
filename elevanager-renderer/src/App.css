@@ -84,3 +84,11 @@
   flex-direction: column;
   grid-row-gap: 5px;
 }
+
+.gameStats {
+  position: absolute;
+  right: 100px;
+  top: 40px;
+  font-size: 40px;
+  font-weight: 800;
+}
