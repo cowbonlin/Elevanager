@@ -99,7 +99,7 @@ const App = () => {
     // Add the passenger to the elevator
     setElevators((prevElevators) => {
       const updatedElevators = [...prevElevators];
-      updatedElevators[elevatorId].passengers.push(passengerId);
+      updatedElevators[elevatorId].passengerIds.push(passengerId);
       return updatedElevators;
     });
   }, []);
@@ -109,7 +109,7 @@ const App = () => {
     setElevators((prevElevators) => {
       const updatedElevators = [...prevElevators];
       _.pullAll(
-        updatedElevators[elevatorId].passengers,
+        updatedElevators[elevatorId].passengerIds,
         passengersToOffboard,
       );
       return updatedElevators;

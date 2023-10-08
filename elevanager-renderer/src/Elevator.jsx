@@ -17,7 +17,7 @@ const getTransitionDuration = (status, fromFloorId, toFloorId) => {
 };
 
 const Elevator = ({ color, elevator, passengers }) => {
-  const { status, currentFloorId, fromFloorId, toFloorId, passengers: elevatorPassengerIds } = elevator;
+  const { status, currentFloorId, fromFloorId, toFloorId, passengerIds: elevatorPassengerIds } = elevator;
   
   const colorClass = (color === 'blue')? 'elevator--blue' : '';
   const duration = getTransitionDuration(status, fromFloorId, toFloorId);

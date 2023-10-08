@@ -20,7 +20,7 @@ class Elevator {
     this.toFloorId = null;
     this.status = 'idle'; // idle | locked (opening, opened, closing) | moving
     this.direction = null; // null | up | down
-    this.passengers = [];
+    this.passengerIds = [];
   }
 };
 
@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
     _.pull(store.floors[elevator.currentFloorId], passenger.id);
     
     // Add passenger to the elevator
-    elevator.passengers.push(passenger.id);
+    elevator.passengerIds.push(passenger.id);
     
     socket.emit('onboard', elevatorId, elevator.currentFloorId, passenger.id);
   });
@@ -158,7 +158,7 @@ io.on('connection', (socket) => {
     
     // Remove passengers from elevator who arrive at their destination
     const passengersToOffboard = _.remove(
-      elevator.passengers, 
+      elevator.passengerIds, 
       (passengerId) => {
         const passenger = store.passengers[passengerId];
         return passenger.destinationFloorId == elevator.currentFloorId;
