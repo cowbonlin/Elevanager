@@ -6,10 +6,8 @@ import Elevator from './Elevator';
 import Panel from './Panel';
 
 const App = () => {
-  const [elevators, setElevators] = useState([
-    {id: 0, fromFloorId: null, toFloorId: null, currentFloorId: 7, status: 'idle'},
-    {id: 1, fromFloorId: null, toFloorId: null, currentFloorId: 7, status: 'idle'},
-  ]);
+  const [isGameLoading, setIsGameLoading] = useState(true);
+  const [elevators, setElevators] = useState([]);
   const [floors, setFloors] = useState(null);
   const [passengers, setPassengers] = useState({});
   const [score, setScore] = useState(0);
@@ -31,6 +29,7 @@ const App = () => {
       setElevators(newElevators);
       setPassengers(newPassengers);
       setFloors(newFloors);
+      setIsGameLoading(false);
     });
   }, []);
   
@@ -148,12 +147,16 @@ const App = () => {
     };
   }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived]);
   
-  
-  
+  if (isGameLoading) {
+    return (
+      <div className="App">
+        Loading...
+      </div>
+    )
+  }
   return (
     <SocketContext.Provider value={socket}>
       <div className="App">
-        
         <Panel printState={printState}/>
         <div className="building">
           <div className="floor-container">
@@ -166,8 +169,8 @@ const App = () => {
           </div>
 
           <div className="ev-container">
-            <Elevator elevator={elevators[0]} />
-            <Elevator elevator={elevators[1]} color={'blue'} />
+            <Elevator elevator={elevators[0]} passengers={passengers} />
+            <Elevator elevator={elevators[1]} passengers={passengers} color={'blue'} />
           </div>
         </div>
         <div className="gameStats">

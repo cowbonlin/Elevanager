@@ -16,11 +16,14 @@ const getTransitionDuration = (status, fromFloorId, toFloorId) => {
   return null;
 };
 
-const Elevator = ({ color, elevator }) => {
-  const { status, currentFloorId, fromFloorId, toFloorId, passengers } = elevator;
+const Elevator = ({ color, elevator, passengers }) => {
+  const { status, currentFloorId, fromFloorId, toFloorId, passengers: elevatorPassengerIds } = elevator;
   
   const colorClass = (color === 'blue')? 'elevator--blue' : '';
   const duration = getTransitionDuration(status, fromFloorId, toFloorId);
+  const destinationList = elevatorPassengerIds.map(
+    (elevatorPassengerId) => passengers[elevatorPassengerId].destinationFloorId
+  );
   return (
     <div className="ev-column">
       <div 
@@ -30,7 +33,7 @@ const Elevator = ({ color, elevator }) => {
           transitionDuration: duration && `${duration}s`,
         }}
       >
-        {(passengers ?? []).map((passengerId) => passengerId + ' ')}
+        {destinationList.join()}
       </div>
     </div>
   );
