@@ -33,6 +33,18 @@ const App = () => {
     });
   }, []);
   
+  const onResetServer = useCallback((
+    newElevators, 
+    newPassengers, 
+    newFloors, 
+    newGameStats
+  ) => {
+    setElevators(newElevators);
+    setPassengers(newPassengers);
+    setFloors(newFloors);
+    setScore(newGameStats?.score ?? 0);
+  }, []);
+  
   const onDisconnect = useCallback(() => {
     setIsSocketIoConnected(false);
   }, []);
@@ -134,6 +146,7 @@ const App = () => {
     socket.on('elevatorArrived', (...args) => onElevatorArrived(...args));
     socket.on('offboard', (...args) => onOffboard(...args));
     socket.on('updateScore', (...args) => onUpdateScore(...args));
+    socket.on('resetServer', (...args) => onResetServer(...args));
     return () => {
       socket.off('connect', onConnect);
       socket.offAny();
@@ -144,6 +157,7 @@ const App = () => {
       socket.off('onboard', onOnboard);
       socket.off('offboard', onOffboard);
       socket.off('updateScore', onUpdateScore);
+      socket.off('resetServer', onResetServer);
     };
   }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived]);
   

@@ -44,14 +44,15 @@ const getTransitionDuration = (fromFloorId, toFloorId) => {
 
 // floors: key is the int of each floor, starting from 1
 // floors: value is a list of Passenger
-const store = {
+const initStore = () => ({
   elevators: [new Elevator(0), new Elevator(1)],
   passengers: {},
   floors: Array.from({ length: 8 }, () => []),
   gameStats: {
     score: 0,
   },
-};
+});
+let store = initStore();
 const p0 = new Passenger(6, 5);
 store.passengers[p0.id] = p0;
 store.floors[p0.departureFloorId].push(p0.id);
@@ -93,6 +94,11 @@ io.on('connection', (socket) => {
     setTimeout(() => {
       onElevatorArrived(elevator);
     }, getTransitionDuration(elevator.fromFloorId, elevator.toFloorId) * 1000);
+  });
+  
+  socket.on('resetServer', () => {
+    store = initStore();
+    socket.emit('resetServer', store.elevators, store.passengers, store.floors, store.gameStats);
   });
   
   socket.on('createPassenger', (departureFloorId, destinationFloorId) => {

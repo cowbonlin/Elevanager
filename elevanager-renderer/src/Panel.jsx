@@ -44,6 +44,10 @@ const Panel = ({ printState }) => {
     });
   };
   
+  const resetServer = () => {
+    socket.emit('resetServer');
+  }
+  
   return (
     <div className="panel">
       <button onClick={() => moveBtnClick(0, 7)}>7</button>
@@ -73,6 +77,8 @@ const Panel = ({ printState }) => {
       <button onClick={onBoardPassenger}>Onboard Passenger</button>
       <hr />
       <button onClick={printState}>Print states</button>
+      <hr />
+      <button onClick={resetServer}>Reset server</button>
     </div>
   );
 };
