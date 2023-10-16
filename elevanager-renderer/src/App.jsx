@@ -160,7 +160,7 @@ const App = () => {
       socket.off('updateScore', onUpdateScore);
       socket.off('resetServer', onResetServer);
     };
-  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived]);
+  }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived, onOffboard, onResetServer, onUpdateScore]);
   
   if (isGameLoading) {
     return (

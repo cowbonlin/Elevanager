@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -181,6 +181,7 @@ io.on('connection', (socket) => {
   };
 });
 
-server.listen(3001, () => {
-  console.log('listening on *:3001');
+const PORT = parseInt(process.env.PORT) || 8080;
+server.listen(PORT, () => {
+  console.log(`listening on *:${PORT}`);
 });
