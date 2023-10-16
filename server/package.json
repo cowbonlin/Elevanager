@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "deploy": "gcloud app deploy"
   },
-  "author": "",
+  "author": "Cowbon Lin",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.1",

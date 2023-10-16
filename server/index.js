@@ -130,7 +130,7 @@ io.on('connection', (socket) => {
       return;
     }
     
-    if (!store.floors[elevator.currentFloorId]?.some((pId) => pId === passengerId)) {
+    if (!store.floors[elevator.currentFloorId].some((pId) => pId === passengerId)) {
       onError('Passenger not found in elevator current floor', elevator.currentFloorId, store.floors[elevator.currentFloorId]);
       return;
     }

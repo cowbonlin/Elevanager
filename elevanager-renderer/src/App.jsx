@@ -29,6 +29,7 @@ const App = () => {
       setElevators(newElevators);
       setPassengers(newPassengers);
       setFloors(newFloors);
+      setScore(0);
       setIsGameLoading(false);
     });
   }, []);
