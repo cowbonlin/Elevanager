@@ -161,6 +161,7 @@ const App = () => {
       socket.off('resetServer', onResetServer);
     };
   }, [onConnect, onDisconnect, onMoveElevator, onCreatePassenger, onClearPassengers, onOnboard, onElevatorArrived, onOffboard, onResetServer, onUpdateScore]);
+  console.log("ENV", process.env);
   
   if (isGameLoading) {
     return (
